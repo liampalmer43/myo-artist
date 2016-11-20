@@ -41,7 +41,6 @@ public:
     // as a unit quaternion.
     void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
     {
-        std::cout << "onOrientationData" << std::endl;
         using std::atan2;
         using std::asin;
         using std::sqrt;
@@ -77,13 +76,16 @@ public:
                 grid[y-1+16][x-1+40] = " ";
                 grid[y-1+16][x+40] = " ";
                 grid[y+16][x-1+40] = " ";
-            } else if (y + 16 < 31 && x + 40 < 79) {
+            }
+            if (y + 16 < 31 && x + 40 < 79) {
                 grid[y+1+16][x+1+40] = " ";
                 grid[y+1+16][x+40] = " ";
                 grid[y+16][x+1+40] = " ";
-            } else if (y + 16 > 0 && x + 40 < 79) {
+            }
+            if (y + 16 > 0 && x + 40 < 79) {
                 grid[y-1+16][x+1+40] = " ";
-            } else if (y + 16 < 31 && x + 40 > 0) {
+            }
+            if (y + 16 < 31 && x + 40 > 0) {
                 grid[y+1+16][x-1+40] = " ";
             }
         }
