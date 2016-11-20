@@ -128,6 +128,13 @@ public:
             } else {
                 draw = (draw + 1) % syms.size();
             }
+        } else if (pose == myo::Pose::fingersSpread) {
+            for (int i = 0; i < 32; ++i) {
+                for (int j = 0; j < 80; ++j) {
+                    grid[i][j] = " ";
+                    draw = -1;
+                }
+            }
         }
         
         if (pose != myo::Pose::unknown && pose != myo::Pose::rest) {
