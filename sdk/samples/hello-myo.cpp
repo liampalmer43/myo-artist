@@ -21,7 +21,11 @@ public:
     : onArm(false), isUnlocked(true), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
     {
         grid = std::vector< std::vector<std::string> >(32, std::vector<std::string>(80, " "));
-        draw = true;
+        syms.push_back("*");
+        syms.push_back("O");
+        syms.push_back("-");
+        syms.push_back("U");
+        draw = 0;
     }
 
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
@@ -65,13 +69,17 @@ public:
         pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 18);
         yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 18);
 
-        //int signX = yaw >= 0.0f ? 1 : -1;
-        //int signY = pitch >= 0.0f ? 1 : -1;
-        int x = (int)(sin(yaw) * 39.0f * -1);
-        int y = (int)(sin(pitch) * 15.0f * -1);
-        grid[y + 16][x + 40] = draw ? "*" : "X";
+        // Scale the angles outward slightly to minimize "grand" gestures.
+        float yawPrime = yaw * 2.1f;
+        yawPrime = yawPrime >= 0 ? min(yawPrime, 1.57f) : max(yawPrime, -1.57f);
+        float pitchPrime = pitch * 2.1f;
+        pitchPrime = pitchPrime >= 0 ? min(pitchPrime, 1.57f) : max(pitchPrime, -1.57f);
+
+        int x = (int)(sin(yawPrime) * 39.0f * -1);
+        int y = (int)(sin(pitchPrime) * 15.0f * -1);
+        grid[y + 16][x + 40] = draw >= 0 ? syms[draw] : "X";
         // Extra erase width
-        if (!draw) {
+        if (draw < 0) {
             if (y + 16 > 0 && x + 40 > 0) {
                 grid[y-1+16][x-1+40] = " ";
                 grid[y-1+16][x+40] = " ";
@@ -89,16 +97,17 @@ public:
                 grid[y+1+16][x-1+40] = " ";
             }
         }
+        std::cout << std::flush;
         for (int i = 0; i < 32; ++i) {
             for (int j = 0; j < 80; ++j) {
-                if (grid[i][j] == "X" && (draw || i != y+16 || j != x + 40)) {
+                if (grid[i][j] == "X" && (draw >= 0 || i != y+16 || j != x + 40)) {
                     grid[i][j] = " ";
                 }
                 std::cout << grid[i][j];
             }
             std::cout << std::endl;
         }
-        std::cout << "X: " << x*-1 << " Y: " << y << std::endl;
+        std::cout << "X: " << x << " Y: " << -y << std::endl;
         
         
     }
@@ -112,9 +121,13 @@ public:
         //std::cout << "onPose" << std::endl;
 
         if (pose == myo::Pose::waveIn) {
-            draw = false;
+            draw = -1;
         } else if (pose == myo::Pose::waveOut) {
-            draw = true;
+            if (draw < 0) {
+                draw = 0;
+            } else {
+                draw = (draw + 1) % syms.size();
+            }
         }
         
         if (pose != myo::Pose::unknown && pose != myo::Pose::rest) {
@@ -213,7 +226,8 @@ public:
     myo::Pose currentPose;
     
     std::vector< std::vector<std::string> > grid;
-    bool draw;
+    std::vector<std::string> syms;
+    int draw;
 };
 
 int main(int argc, char** argv)
@@ -257,7 +271,7 @@ int main(int argc, char** argv)
         hub.run(1000/20);
         // After processing events, we call the print() member function we defined above to print out the values we've
         // obtained from any events that have occurred.
-        collector.print();
+        // collector.print();
     }
 
     // If a standard exception occurred, we print out its message and exit.
