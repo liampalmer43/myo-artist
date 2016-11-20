@@ -21,7 +21,7 @@ public:
     : onArm(false), isUnlocked(true), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
     {
         width = 110;
-        height = 40;
+        height = 32;
         grid = std::vector< std::vector<std::string> >(height, std::vector<std::string>(width, " "));
         syms.push_back("*");
         syms.push_back("O");
@@ -126,7 +126,16 @@ public:
         using std::sin;
         using std::abs;
         if (pose == myo::Pose::waveIn) {
-            draw = -1;
+            if (draw >= 0) {
+                draw = -1;
+            } else {
+                for (int i = 0; i < height; ++i) {
+                    for (int j = 0; j < width; ++j) {
+                        grid[i][j] = "|";
+                    }
+                }
+                draw = -1;
+            }
         } else if (pose == myo::Pose::waveOut) {
             if (draw < 0) {
                 draw = 0;
