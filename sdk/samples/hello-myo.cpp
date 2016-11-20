@@ -123,7 +123,8 @@ public:
         currentPose = pose;
         //std::cout << pose.toString() << std::endl;
         //std::cout << "onPose" << std::endl;
-
+        using std::sin;
+        using std::abs;
         if (pose == myo::Pose::waveIn) {
             draw = -1;
         } else if (pose == myo::Pose::waveOut) {
@@ -136,6 +137,17 @@ public:
             for (int i = 0; i < height; ++i) {
                 for (int j = 0; j < width; ++j) {
                     grid[i][j] = " ";
+                    draw = -1;
+                }
+            }
+        } else if (pose == myo::Pose::fist) {
+            for (int i = 0; i < height; ++i) {
+                for (int j = 0; j < width; ++j) {
+                    if (abs((i - height/2)*2 - (int)(sin(j/4.0f)*height/2.3f)) < 4) {
+                        grid[i][j] = "*";
+                    } else {
+                        grid[i][j] = " ";
+                    }
                     draw = -1;
                 }
             }
