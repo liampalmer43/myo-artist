@@ -20,7 +20,9 @@ public:
     DataCollector()
     : onArm(false), isUnlocked(true), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
     {
-        grid = std::vector< std::vector<std::string> >(32, std::vector<std::string>(80, " "));
+        width = 110;
+        height = 40;
+        grid = std::vector< std::vector<std::string> >(height, std::vector<std::string>(width, " "));
         syms.push_back("*");
         syms.push_back("O");
         syms.push_back("-");
@@ -70,37 +72,39 @@ public:
         yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 18);
 
         // Scale the angles outward slightly to minimize "grand" gestures.
-        float yawPrime = yaw * 2.1f;
+        float yawPrime = yaw * 1.6f;
         yawPrime = yawPrime >= 0 ? min(yawPrime, 1.57f) : max(yawPrime, -1.57f);
         float pitchPrime = pitch * 2.1f;
         pitchPrime = pitchPrime >= 0 ? min(pitchPrime, 1.57f) : max(pitchPrime, -1.57f);
 
-        int x = (int)(sin(yawPrime) * 39.0f * -1);
-        int y = (int)(sin(pitchPrime) * 15.0f * -1);
-        grid[y + 16][x + 40] = draw >= 0 ? syms[draw] : "X";
+        int x = (int)(sin(yawPrime) * (width / 2.0f - 1.0f) * -1);
+        int y = (int)(sin(pitchPrime) * (height / 2.0f - 1.0f) * -1);
+        int gridX = x + width/2;
+        int gridY = y + height/2;
+        grid[gridY][gridX] = draw >= 0 ? syms[draw] : "X";
         // Extra erase width
         if (draw < 0) {
-            if (y + 16 > 0 && x + 40 > 0) {
-                grid[y-1+16][x-1+40] = " ";
-                grid[y-1+16][x+40] = " ";
-                grid[y+16][x-1+40] = " ";
+            if (gridY > 0 && gridX > 0) {
+                grid[gridY-1][gridX-1] = " ";
+                grid[gridY-1][gridX] = " ";
+                grid[gridY][gridX-1] = " ";
             }
-            if (y + 16 < 31 && x + 40 < 79) {
-                grid[y+1+16][x+1+40] = " ";
-                grid[y+1+16][x+40] = " ";
-                grid[y+16][x+1+40] = " ";
+            if (gridY < height-1 && gridX < width-1) {
+                grid[gridY+1][gridX+1] = " ";
+                grid[gridY+1][gridX] = " ";
+                grid[gridY][gridX+1] = " ";
             }
-            if (y + 16 > 0 && x + 40 < 79) {
-                grid[y-1+16][x+1+40] = " ";
+            if (gridY > 0 && gridX < width-1) {
+                grid[gridY-1][gridX+1] = " ";
             }
-            if (y + 16 < 31 && x + 40 > 0) {
-                grid[y+1+16][x-1+40] = " ";
+            if (gridY < height-1 && gridX > 0) {
+                grid[gridY+1][gridX-1] = " ";
             }
         }
         std::cout << std::flush;
-        for (int i = 0; i < 32; ++i) {
-            for (int j = 0; j < 80; ++j) {
-                if (grid[i][j] == "X" && (draw >= 0 || i != y+16 || j != x + 40)) {
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                if (grid[i][j] == "X" && (draw >= 0 || i != gridY || j != gridX)) {
                     grid[i][j] = " ";
                 }
                 std::cout << grid[i][j];
@@ -129,8 +133,8 @@ public:
                 draw = (draw + 1) % syms.size();
             }
         } else if (pose == myo::Pose::fingersSpread) {
-            for (int i = 0; i < 32; ++i) {
-                for (int j = 0; j < 80; ++j) {
+            for (int i = 0; i < height; ++i) {
+                for (int j = 0; j < width; ++j) {
                     grid[i][j] = " ";
                     draw = -1;
                 }
@@ -235,6 +239,8 @@ public:
     std::vector< std::vector<std::string> > grid;
     std::vector<std::string> syms;
     int draw;
+    int width;
+    int height;
 };
 
 int main(int argc, char** argv)
